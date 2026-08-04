@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual Environment
+venv/
+.env
+
+# VS Code
+.vscode/
+
+# Pytest
+.pytest_cache/
+
+# SQLAlchemy
+*.db
+
+# OS
+.DS_Store
+Thumbs.db

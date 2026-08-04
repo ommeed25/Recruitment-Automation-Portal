@@ -1,0 +1,30 @@
+from datetime import datetime
+
+from apscheduler.schedulers.background import BackgroundScheduler
+
+from app.scheduler.jobs import scheduled_sync
+
+scheduler = BackgroundScheduler()
+_scheduler_started = False
+
+
+def start_scheduler():
+    global _scheduler_started
+
+    if _scheduler_started:
+        return
+
+    scheduler.add_job(
+        scheduled_sync,
+        trigger="interval",
+        seconds=30,
+        id="oracle_sync",
+        replace_existing=True,
+        next_run_time=datetime.utcnow(),
+       
+    )
+
+    scheduler.start()
+    _scheduler_started = True
+
+    print("Scheduler Started")

@@ -1,0 +1,80 @@
+
+
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  min-height: 122px;
+  box-sizing: border-box;
+}
+
+.stat-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.stat-card h3 {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.stat-card h2 {
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  color: #111827;
+  margin: 0;
+  font-weight: 700;
+}
+
+.chart-card {
+  color: #111827;
+  width: 100%;
+  min-height: 320px;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
+}
+
+.status-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
+}
+
+.status-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.status-row:last-child {
+  border-bottom: none;
+}
+
+.status-row span:first-child {
+  color: #334155;
+  font-weight: 600;
+}
