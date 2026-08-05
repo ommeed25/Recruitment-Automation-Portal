@@ -60,18 +60,26 @@ def build_company_section():
 
         lines.append(f"• {benefit}")
 
-    return "\n".join(lines)
+    return "\n".join(lines) 
+
+
+RECRUITMENT_EMAIL = "careers@unionsystechnologies.com"
 
 
 def build_footer():
 
-    return """
-📩 Interested candidates can share their updated resume with our recruitment team.
+    return f"""
+📩 Interested candidates can share their updated resume at:
+
+📧 {RECRUITMENT_EMAIL}
 
 Know someone who would be a great fit?
 
-Tag them in the comments or share this opportunity.
+🔁 Tag them in the comments or share this opportunity with your network.
+
+Only shortlisted candidates will be contacted.
 """
+
 
 def build_hashtags(job):
 
