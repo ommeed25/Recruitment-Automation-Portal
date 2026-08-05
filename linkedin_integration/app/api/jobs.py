@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func, extract
+from datetime import datetime, timedelta
 
 from app.db.dependencies import get_db
 from app.db.models import Job
@@ -59,4 +61,31 @@ def get_job_analytics(
     "published_jobs": published_jobs,
     "pending_jobs": pending_jobs
 }
-   
+
+
+@router.get("/analytics/weekly")
+def get_weekly_job_analytics(
+    db: Session = Depends(get_db),
+):
+  today = datetime.now()
+  week_start = today - timedelta(days=today.weekday())
+
+  days = []
+  day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+  for i in range(7):
+    current_day = week_start + timedelta(days=i)
+    next_day = current_day + timedelta(days=1)
+
+    count = db.query(Job).filter(
+      Job.linkedin_posted == True,
+      Job.updated_on >= current_day,
+      Job.updated_on < next_day
+    ).count()
+
+    days.append({
+      "day": day_names[i],
+      "jobs": count
+    })
+
+  return days

@@ -6,6 +6,9 @@ from .api.linkedin import router as linkedin_router
 from .api.job_sync import router as job_sync_router
 from .api.jobs import router as jobs_router
 from app.scheduler.scheduler import start_scheduler
+from app.api.history import router as history_router
+from app.api.auth import router as auth_router
+
 
 app = FastAPI(
     title="LinkedIn Integration API"
@@ -17,6 +20,9 @@ app.include_router(linkedin_router)
 app.include_router(jobs_router)
 app.include_router(job_sync_router)
 app.include_router(recruiters.router)
+app.include_router(history_router)
+app.include_router(auth_router)
+
 
 @app.get("/")
 def home():

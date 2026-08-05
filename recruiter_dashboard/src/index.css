@@ -95,6 +95,30 @@ p {
   color: #060708;
 }
 
+.history-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin: 0 0 20px;
+}
+
+.history-search {
+  width: min(100%, 320px);
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 15px;
+  color: var(--text);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.history-search:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(170, 59, 255, 0.12);
+}
+
 code,
 .counter {
   font-family: var(--mono);

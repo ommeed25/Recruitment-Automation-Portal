@@ -7,18 +7,33 @@ import {
     Tooltip,
     ResponsiveContainer
 } from "recharts";
-
-const data = [
-    { day: "Mon", jobs: 4 },
-    { day: "Tue", jobs: 8 },
-    { day: "Wed", jobs: 5 },
-    { day: "Thu", jobs: 10 },
-    { day: "Fri", jobs: 12 },
-    { day: "Sat", jobs: 7 },
-    { day: "Sun", jobs: 9 },
-];
+import { useEffect, useState } from "react";
 
 export default function WeeklyChart() {
+    const [data, setData] = useState([
+        { day: "Mon", jobs: 0 },
+        { day: "Tue", jobs: 0 },
+        { day: "Wed", jobs: 0 },
+        { day: "Thu", jobs: 0 },
+        { day: "Fri", jobs: 0 },
+        { day: "Sat", jobs: 0 },
+        { day: "Sun", jobs: 0 },
+    ]);
+
+    useEffect(() => {
+        const loadWeeklyData = async () => {
+            try {
+                const { getWeeklyJobStats } = await import("../../services/dashboard");
+                const weeklyData = await getWeeklyJobStats();
+                setData(weeklyData);
+            } catch (error) {
+                console.error("Failed to load weekly stats:", error);
+            }
+        };
+
+        void loadWeeklyData();
+    }, []);
+
     return (
         <ResponsiveContainer width="100%" height={320}>
             <LineChart data={data}>

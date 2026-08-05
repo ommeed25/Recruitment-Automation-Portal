@@ -17,7 +17,7 @@ def start_scheduler():
     scheduler.add_job(
         scheduled_sync,
         trigger="interval",
-        seconds=30,
+        minutes=5,
         id="oracle_sync",
         replace_existing=True,
         next_run_time=datetime.utcnow(),
