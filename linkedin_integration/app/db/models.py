@@ -62,16 +62,16 @@ class LinkedInAccount(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    employee_id = Column(Integer, nullable=False)
+    employee_id = Column(Integer, nullable=True)
 
-    linkedin_sub = Column(String(255), unique=True, nullable=False)
+    linkedin_sub = Column(String(255), unique=True, nullable=True)
 
     full_name = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False)
 
-    access_token = Column(Text, nullable=False)
-    token_type = Column(String(20), nullable=False)
-    expires_in = Column(Integer, nullable=False)
+    access_token = Column(Text, nullable=True)
+    token_type = Column(String(20), nullable=True)
+    expires_in = Column(Integer, nullable=True)
 
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(
