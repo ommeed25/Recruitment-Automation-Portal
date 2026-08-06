@@ -153,9 +153,9 @@ export default function Recruiters() {
                   <button
                     className="connect-btn"
                     onClick={() => {
-                      window.location.href = `http://127.0.0.1:8000/auth/linkedin/authorize?email=${encodeURIComponent(
-                        recruiter.email,
-                      )}`;
+                      window.location.href = `/api/auth/linkedin/authorize?email=${encodeURIComponent(
+                            recruiter.email,
+                       )}`;
                     }}
                   >
                     Connect
