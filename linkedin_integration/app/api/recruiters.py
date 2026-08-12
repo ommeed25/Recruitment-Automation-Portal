@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.schemas.recruiter import RecruiterCreate
 from app.db.dependencies import get_db
-from app.db.models import Job, LinkedInAccount, LinkedInPost
+from app.db.models import Job, LinkedInAccount, LinkedInPost , VendorPostHistory
 
 router = APIRouter(
     prefix="/recruiters",
@@ -124,6 +124,10 @@ def delete_recruiter(
 
     db.query(LinkedInPost).filter(
         LinkedInPost.linkedin_account_id == account.id
+    ).delete(synchronize_session=False)
+
+    db.query(VendorPostHistory).filter(
+        VendorPostHistory.linkedin_account_id == account.id
     ).delete(synchronize_session=False)
 
     db.delete(account)

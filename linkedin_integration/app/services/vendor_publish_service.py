@@ -116,7 +116,6 @@ def publish_vendor_posts(db: Session):
             db.query(VendorPostHistory)
             .filter(
                 VendorPostHistory.linkedin_account_id == account.id,
-                VendorPostHistory.post_status == "SUCCESS",
                 VendorPostHistory.posted_at >= datetime.combine(
                     today,
                     datetime.min.time()
@@ -127,8 +126,9 @@ def publish_vendor_posts(db: Session):
 
         if existing_post:
             print(
-                f"Already posted today from {account.email}. "
-                "Skipping."
+                f"Already attempted vendor post today from "
+                f"{account.email} "
+                f"({existing_post.post_status}). Skipping."
             )
             continue
         print(

@@ -5,7 +5,6 @@ from app.api import recruiters
 from .api.linkedin import router as linkedin_router
 from .api.job_sync import router as job_sync_router
 from .api.jobs import router as jobs_router
-from app.scheduler.scheduler import start_scheduler
 from app.api.history import router as history_router
 from app.api.auth import router as auth_router
 from app.api.vendor import router as vendor_router
@@ -22,7 +21,6 @@ app.mount(
     name="uploads"
 )
 
-start_scheduler()
 
 app.include_router(linkedin_router)
 app.include_router(jobs_router)
