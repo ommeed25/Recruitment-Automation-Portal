@@ -79,7 +79,7 @@ def publish_job_service(job_id: int, db: Session):
                 linkedin_account_id=linkedin_account.id,
                 linkedin_post_id=response_data["id"],
                 post_status="SUCCESS",
-                posted_at=datetime.utcnow(),
+                posted_at=datetime.now(),
             )
 
             db.add(linkedin_post)

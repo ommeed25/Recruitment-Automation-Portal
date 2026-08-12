@@ -101,3 +101,105 @@ def publish_post(
     print("Response:", response.text)
 
     return response
+
+def upload_image_to_linkedin(
+    access_token: str,
+    image_path: str,
+    person_urn: str,
+):
+    url = "https://api.linkedin.com/rest/images?action=initializeUpload"
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+        "LinkedIn-Version": "202601",
+        "X-Restli-Protocol-Version": "2.0.0",
+    }
+
+    payload = {
+        "initializeUploadRequest": {
+            "owner": person_urn
+        }
+    }
+
+    response = requests.post(
+        url,
+        headers=headers,
+        json=payload
+    )
+
+    print("Image initialization status:", response.status_code)
+    print("Image initialization response:", response.text)
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    upload_url = data["value"]["uploadUrl"]
+    image_urn = data["value"]["image"]
+
+    with open(image_path, "rb") as image_file:
+        upload_response = requests.put(
+            upload_url,
+            headers={
+                "Content-Type": "application/octet-stream"
+            },
+            data=image_file
+        )
+
+    print("Image upload status:", upload_response.status_code)
+    print("Image upload response:", upload_response.text)
+
+    upload_response.raise_for_status()
+
+    return image_urn
+
+def publish_vendor_post(
+    access_token: str,
+    person_urn: str,
+    image_urn: str,
+    hashtags: list[str],
+):
+    url = "https://api.linkedin.com/rest/posts"
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+        "LinkedIn-Version": "202601",
+        "X-Restli-Protocol-Version": "2.0.0",
+    }
+
+    hashtag_text = " ".join(hashtags)
+
+    payload = {
+        "author": person_urn,
+        "commentary": hashtag_text,
+        "visibility": "PUBLIC",
+        "distribution": {
+            "feedDistribution": "MAIN_FEED",
+            "targetEntities": [],
+            "thirdPartyDistributionChannels": []
+        },
+        "content": {
+            "media": {
+                "title": "Vendor Partnership",
+                "id": image_urn
+            }
+        },
+        "lifecycleState": "PUBLISHED",
+        "isReshareDisabledByAuthor": False
+    }
+
+    response = requests.post(
+        url,
+        headers=headers,
+        json=payload
+    )
+
+    print("Vendor post status:", response.status_code)
+    print("Vendor post response:", response.text)
+
+    response.raise_for_status()
+
+    return response
+

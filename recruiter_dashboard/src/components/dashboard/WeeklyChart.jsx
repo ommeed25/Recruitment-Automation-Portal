@@ -24,7 +24,11 @@ export default function WeeklyChart() {
         const loadWeeklyData = async () => {
             try {
                 const { getWeeklyJobStats } = await import("../../services/dashboard");
-                const weeklyData = await getWeeklyJobStats();
+               const weeklyData = await getWeeklyJobStats();
+
+                console.log("WEEKLY DATA:", weeklyData);
+                console.log("IS ARRAY:", Array.isArray(weeklyData));
+
                 setData(weeklyData);
             } catch (error) {
                 console.error("Failed to load weekly stats:", error);

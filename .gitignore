@@ -7,8 +7,11 @@ linkedin_integration/.venv/
 recruiter_dashboard/node_modules/
 recruiter_dashboard/dist/
 
-# Environment
-**/.env
+# Python virtual environment
+venv/
+**/venv/
+**/.venv/
+
 
 # VS Code
 .vscode/
@@ -16,3 +19,9 @@ recruiter_dashboard/dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Uploaded files
+linkedin_integration/uploads/
+# Environment files
+*.env
+*.env.*

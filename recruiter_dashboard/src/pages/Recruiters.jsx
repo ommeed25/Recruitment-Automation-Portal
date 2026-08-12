@@ -164,12 +164,13 @@ export default function Recruiters() {
               </td>
 
               <td>
-                <button
-                  className="delete-btn"
-                  onClick={() => handleDelete(recruiter.id, recruiter)}
-                >
-                  🗑 Delete
-                </button>
+                  <button
+ 			 className="delete-btn"
+ 			 disabled={!recruiter.id}
+ 			 onClick={() => handleDelete(recruiter.id, recruiter)}
+			>
+ 			 🗑 Delete
+		</button>
               </td>
             </tr>
           ))}

@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { login } from "../services/auth";
 import { useNavigate } from "react-router-dom";
-
+import "./Login.css";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,6 +25,7 @@ export default function Login() {
   return (
     <div className="login-container">
       <h2>Recruitment Automation Portal</h2>
+       <p>Sign in to continue</p>
 
       <input
         placeholder="Email"

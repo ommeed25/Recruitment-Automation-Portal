@@ -10,11 +10,12 @@ import Recruiters from "./pages/Recruiters";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 
+import VendorPartnership from "./pages/VendorPartnership";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         <Route path="/login" element={<Login />} />
 
         <Route
@@ -28,9 +29,9 @@ function App() {
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/recruiters" element={<Recruiters />} />
           <Route path="/history" element={<History />} />
+          <Route path="/vendor-partnership" element={<VendorPartnership />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
-
       </Routes>
     </BrowserRouter>
   );

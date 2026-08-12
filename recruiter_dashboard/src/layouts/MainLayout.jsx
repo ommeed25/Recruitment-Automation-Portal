@@ -5,6 +5,7 @@ import {
   Users,
   History,
   Settings,
+  Handshake,
 } from "lucide-react";
 
 import "../styles/layout.css";
@@ -31,11 +32,17 @@ const menu = [
     path: "/history",
     icon: <History size={20} />,
   },
+   {
+    title: "Vendor",
+    path: "/vendor-partnership",
+    icon: <Handshake />,
+  },
   {
     title: "Settings",
     path: "/settings",
     icon: <Settings size={20} />,
   },
+ 
 ];
 
 export default function MainLayout() {

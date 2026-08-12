@@ -124,3 +124,118 @@ class LinkedInPost(Base):
         "LinkedInAccount",
         back_populates="posts"
     )
+
+class VendorImage(Base):
+    __tablename__ = "vendor_images"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    filename = Column(String(255), nullable=False)
+    file_path = Column(Text, nullable=False)
+
+    is_active = Column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
+
+    created_at = Column(
+        TIMESTAMP,
+        server_default=func.now()
+    )
+
+
+class VendorHashtag(Base):
+    __tablename__ = "vendor_hashtags"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    hashtag = Column(String(255), nullable=False)
+
+    is_active = Column(
+        Boolean,
+        default=True,
+        nullable=False
+    )
+
+    created_at = Column(
+        TIMESTAMP,
+        server_default=func.now()
+    )
+
+    updated_at = Column(
+        TIMESTAMP,
+        server_default=func.now(),
+        onupdate=func.now()
+    )
+
+
+class VendorSettings(Base):
+    __tablename__ = "vendor_settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    is_enabled = Column(
+        Boolean,
+        default=True,
+        nullable=False
+    )
+
+    posting_time = Column(
+        String(10),
+        nullable=False,
+        default="10:00"
+    )
+
+    active_image_id = Column(
+        Integer,
+        ForeignKey("vendor_images.id"),
+        nullable=True
+    )
+
+    created_at = Column(
+        TIMESTAMP,
+        server_default=func.now()
+    )
+
+    updated_at = Column(
+        TIMESTAMP,
+        server_default=func.now(),
+        onupdate=func.now()
+    )
+
+    active_image = relationship(
+        "VendorImage"
+    )
+
+
+class VendorPostHistory(Base):
+    __tablename__ = "vendor_post_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    linkedin_account_id = Column(
+        Integer,
+        ForeignKey("linkedin_accounts.id"),
+        nullable=False
+    )
+
+    linkedin_post_id = Column(String(255))
+
+    post_status = Column(
+        String(50),
+        nullable=False
+    )
+
+    error_message = Column(Text)
+
+    posted_at = Column(TIMESTAMP)
+
+    created_at = Column(
+        TIMESTAMP,
+        server_default=func.now()
+    )
+
+    linkedin_account = relationship(
+        "LinkedInAccount"
+    )
