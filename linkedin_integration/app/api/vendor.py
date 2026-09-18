@@ -1,4 +1,4 @@
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from fastapi import (
     APIRouter,
@@ -32,6 +32,16 @@ UPLOAD_DIR.mkdir(
     parents=True,
     exist_ok=True
 )
+
+
+def _image_url(file_path: str) -> str:
+    path = (
+        PureWindowsPath(file_path)
+        if "\\" in file_path
+        else Path(file_path)
+    )
+
+    return f"/{path.as_posix().lstrip('/')}"
 
 @router.get("/settings")
 def get_vendor_settings(
@@ -100,7 +110,7 @@ def get_vendor_images(
         {
             "id": image.id,
             "filename": image.filename,
-            "file_path": image.file_path,
+            "file_path": _image_url(image.file_path),
             "is_active": image.is_active,
             "created_at": image.created_at,
         }
@@ -200,7 +210,7 @@ async def upload_vendor_image(
         "message": "Vendor image uploaded successfully",
         "id": image.id,
         "filename": image.filename,
-        "file_path": image.file_path,
+        "file_path": _image_url(image.file_path),
         "is_active": image.is_active
     }
 

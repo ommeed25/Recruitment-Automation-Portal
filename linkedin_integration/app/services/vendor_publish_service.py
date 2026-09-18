@@ -46,21 +46,58 @@ def publish_vendor_posts(db: Session):
         print("Vendor posting is disabled")
         return
 
-    if not settings.active_image_id:
-        print("No active vendor image selected")
+    current_time = datetime.now().strftime("%H:%M")
+
+    if current_time != settings.posting_time:
         return
 
-    image = (
-        db.query(VendorImage)
-        .filter(
-            VendorImage.id == settings.active_image_id
-        )
-        .first()
+    today = datetime.now().date()
+
+    print(
+        f"Vendor posting time matched: "
+        f"{settings.posting_time}"
     )
 
-    if not image:
-        print("Active vendor image not found")
+    # ---------------------------------------------------------
+    # LOAD ALL VENDOR IMAGES
+    # ---------------------------------------------------------
+
+    images = (
+        db.query(VendorImage)
+        .order_by(VendorImage.id.asc())
+        .all()
+    )
+
+    if not images:
+        print("No vendor images uploaded")
         return
+
+    # ---------------------------------------------------------
+    # PREVENT SECOND ROTATION CYCLE ON SAME DAY
+    # ---------------------------------------------------------
+
+    if settings.last_rotation_date == today:
+        print(
+            f"Vendor rotation already processed today "
+            f"({today}). Skipping."
+        )
+        return
+
+    rotation_index = settings.rotation_index % len(images)
+    image = images[rotation_index]
+
+    image_path = Path(image.file_path)
+
+    if not image_path.exists():
+        print(
+            f"Vendor image file not found: "
+            f"{image_path}"
+        )
+        return
+
+    # ---------------------------------------------------------
+    # LOAD HASHTAGS
+    # ---------------------------------------------------------
 
     hashtags = (
         db.query(VendorHashtag)
@@ -79,6 +116,15 @@ def publish_vendor_posts(db: Session):
         print("More than 30 hashtags found")
         return
 
+    hashtag_values = [
+        hashtag.hashtag
+        for hashtag in hashtags
+    ]
+
+    # ---------------------------------------------------------
+    # LOAD CONNECTED LINKEDIN ACCOUNTS
+    # ---------------------------------------------------------
+
     accounts = (
         db.query(LinkedInAccount)
         .filter(
@@ -91,46 +137,49 @@ def publish_vendor_posts(db: Session):
         print("No connected LinkedIn accounts")
         return
 
-    image_path = Path(image.file_path)
-
-    if not image_path.exists():
-        print(f"Vendor image file not found: {image_path}")
-        return
-
-    hashtag_values = [
-        hashtag.hashtag
-        for hashtag in hashtags
-    ]
-
     print("====================================")
     print("VENDOR PUBLISHING")
+    print("Date:", today)
     print("Image:", image.filename)
+    print("Rotation index:", rotation_index)
+    print("Total images:", len(images))
     print("Hashtags:", len(hashtag_values))
     print("Accounts:", len(accounts))
     print("====================================")
 
+    successful_posts = 0
+    attempted_accounts = 0
+
+    today_start = datetime.combine(
+        today,
+        datetime.min.time()
+    )
+
+    # ---------------------------------------------------------
+    # POST SAME FLYER TO ALL LINKEDIN ACCOUNTS
+    # ---------------------------------------------------------
+
     for account in accounts:
-        today = datetime.now().date()
 
         existing_post = (
             db.query(VendorPostHistory)
             .filter(
                 VendorPostHistory.linkedin_account_id == account.id,
-                VendorPostHistory.posted_at >= datetime.combine(
-                    today,
-                    datetime.min.time()
-                ),
+                VendorPostHistory.posted_at >= today_start,
             )
             .first()
         )
 
         if existing_post:
             print(
-                f"Already attempted vendor post today from "
-                f"{account.email} "
+                f"Already attempted vendor post today "
+                f"from {account.email} "
                 f"({existing_post.post_status}). Skipping."
             )
             continue
+
+        attempted_accounts += 1
+
         print(
             f"Publishing vendor post from "
             f"{account.email}"
@@ -168,6 +217,8 @@ def publish_vendor_posts(db: Session):
             db.add(history)
             db.commit()
 
+            successful_posts += 1
+
             print(
                 f"Vendor post successful: "
                 f"{account.email}"
@@ -182,6 +233,8 @@ def publish_vendor_posts(db: Session):
 
             print(str(e))
 
+            db.rollback()
+
             history = VendorPostHistory(
                 linkedin_account_id=account.id,
                 post_status="FAILED",
@@ -191,3 +244,53 @@ def publish_vendor_posts(db: Session):
 
             db.add(history)
             db.commit()
+
+    # ---------------------------------------------------------
+    # ADVANCE ROTATION ONLY AFTER SUCCESS
+    # ---------------------------------------------------------
+
+    if successful_posts > 0:
+
+        settings.rotation_index = (
+            rotation_index + 1
+        ) % len(images)
+
+        settings.last_rotation_date = today
+
+        db.commit()
+
+        print(
+            "===================================="
+        )
+        print(
+            "Vendor image rotation advanced:"
+        )
+        print(
+            f"{rotation_index} -> "
+            f"{settings.rotation_index}"
+        )
+        print(
+            f"Last rotation date: "
+            f"{settings.last_rotation_date}"
+        )
+        print(
+            "Next flyer: "
+            f"{images[settings.rotation_index].filename}"
+        )
+        print(
+            "===================================="
+        )
+
+    elif attempted_accounts > 0:
+
+        print(
+            "No vendor posts succeeded. "
+            "Keeping the same rotation index "
+            "for retry."
+        )
+
+    else:
+
+        print(
+            "No accounts needed posting today."
+        )

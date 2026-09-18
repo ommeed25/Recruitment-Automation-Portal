@@ -1,14 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import recruiters
-
+ 
 from .api.linkedin import router as linkedin_router
+from .api.sales_linkedin import router as sales_linkedin_router
 from .api.job_sync import router as job_sync_router
 from .api.jobs import router as jobs_router
 from app.api.history import router as history_router
 from app.api.auth import router as auth_router
 from app.api.vendor import router as vendor_router
 
+from .api.sales_accounts import router as sales_accounts_router
+from .api.sales_images import router as sales_images_router
+from .api.sales_hashtags import router as sales_hashtags_router
+from .api.sales_settings import router as sales_settings_router
+from .api.sales_posts import router as sales_posts_router
+from .api.sales_history import router as sales_history_router
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(
@@ -23,12 +30,19 @@ app.mount(
 
 
 app.include_router(linkedin_router)
+app.include_router(sales_linkedin_router)
 app.include_router(jobs_router)
 app.include_router(job_sync_router)
 app.include_router(recruiters.router)
 app.include_router(history_router)
 app.include_router(auth_router)
 app.include_router(vendor_router)
+app.include_router(sales_accounts_router)
+app.include_router(sales_images_router)
+app.include_router(sales_hashtags_router)
+app.include_router(sales_settings_router)
+app.include_router(sales_posts_router)
+app.include_router(sales_history_router)
 
 
 @app.get("/")
