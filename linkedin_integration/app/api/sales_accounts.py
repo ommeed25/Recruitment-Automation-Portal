@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from pydantic import BaseModel
 from app.db.dependencies import get_db
 from app.db.models import SalesLinkedInAccount
 
@@ -10,6 +10,11 @@ router = APIRouter(
     tags=["Sales Accounts"]
 )
 
+
+class SalesAccountCreate(BaseModel):
+    full_name: str
+    email: str
+    employee_id: int | None = None
 
 @router.get("/")
 def get_sales_accounts(
@@ -33,6 +38,40 @@ def get_sales_accounts(
         for account in accounts
     ]
 
+@router.post("/")
+def create_sales_account(
+    payload: SalesAccountCreate,
+    db: Session = Depends(get_db),
+):
+    existing = (
+        db.query(SalesLinkedInAccount)
+        .filter(SalesLinkedInAccount.email == payload.email)
+        .first()
+    )
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Sales account with this email already exists",
+        )
+
+    account = SalesLinkedInAccount(
+        full_name=payload.full_name,
+        email=payload.email,
+        employee_id=payload.employee_id,
+    )
+
+    db.add(account)
+    db.commit()
+    db.refresh(account)
+
+    return {
+        "id": account.id,
+        "employee_id": account.employee_id,
+        "full_name": account.full_name,
+        "email": account.email,
+        "connected": False,
+    }
 
 @router.delete("/{account_id}")
 def delete_sales_account(
