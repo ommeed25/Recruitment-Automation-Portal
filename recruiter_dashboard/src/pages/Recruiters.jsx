@@ -1,13 +1,22 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./Recruiters.css";
+
 import {
   getRecruiters,
   createRecruiter,
   deleteRecruiter,
 } from "../services/recruiters";
 
+import {
+  getSalesAccounts,
+  createSalesAccount,
+  deleteSalesAccount,
+} from "../services/sales";
+
 export default function Recruiters() {
-  const [recruiters, setRecruiters] = useState([]);
+  const [mode, setMode] = useState("vendor");
+
+  const [accounts, setAccounts] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
 
@@ -15,66 +24,115 @@ export default function Recruiters() {
   const [email, setEmail] = useState("");
   const [employeeId, setEmployeeId] = useState("");
 
-  const loadRecruiters = async () => {
+  const isSales = mode === "sales";
+
+  const loadAccounts = useCallback(async () => {
     try {
-      const data = await getRecruiters();
-      setRecruiters(data);
+      const data = isSales ? await getSalesAccounts() : await getRecruiters();
+
+      setAccounts(data);
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [isSales]);
 
   useEffect(() => {
-    let isMounted = true;
+    let cancelled = false;
 
-    const fetchRecruiters = async () => {
-      await loadRecruiters();
-      if (!isMounted) return;
+    const load = async () => {
+      try {
+        const data = isSales ? await getSalesAccounts() : await getRecruiters();
+
+        if (!cancelled) {
+          setAccounts(data);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error(error);
+        }
+      }
     };
 
-    void fetchRecruiters();
+    void load();
 
     return () => {
-      isMounted = false;
+      cancelled = true;
     };
-  }, []);
+  }, [isSales]);
+
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+
+    setFullName("");
+    setEmail("");
+    setEmployeeId("");
+    setShowModal(false);
+    setAccounts([]);
+  };
 
   const handleCreate = async () => {
     try {
-      await createRecruiter({
+      const payload = {
         full_name: fullName,
         email,
-        employee_id: employeeId || null,
-      });
+        employee_id: employeeId ? Number(employeeId) : null,
+      };
+
+      if (isSales) {
+        await createSalesAccount(payload);
+      } else {
+        await createRecruiter(payload);
+      }
 
       setFullName("");
       setEmail("");
       setEmployeeId("");
-
       setShowModal(false);
 
-      loadRecruiters();
+      await loadAccounts();
     } catch (error) {
-      alert(error.response?.data?.detail || "Unable to create recruiter");
+      alert(
+        error.response?.data?.detail ||
+          `Unable to create ${isSales ? "Sales account" : "recruiter"}`,
+      );
     }
   };
 
-  const handleDelete = async (id, recruiter) => {
+  const handleDelete = async (id, account) => {
     if (
       !window.confirm(
-        `Delete ${recruiter.full_name}?\n\nThis will remove the recruiter and any related LinkedIn post history.`,
+        `Delete ${account.full_name}?\n\nThis will remove the ${
+          isSales ? "Sales account" : "recruiter"
+        } and related LinkedIn post history.`,
       )
     ) {
       return;
     }
 
     try {
-      await deleteRecruiter(id);
+      if (isSales) {
+        await deleteSalesAccount(id);
+      } else {
+        await deleteRecruiter(id);
+      }
 
-      loadRecruiters();
+      await loadAccounts();
     } catch (error) {
-      alert(error.response?.data?.detail || "Unable to delete recruiter");
+      alert(
+        error.response?.data?.detail ||
+          `Unable to delete ${isSales ? "Sales account" : "recruiter"}`,
+      );
     }
+  };
+
+  const handleConnect = (account) => {
+    const endpoint = isSales
+      ? "/api/sales/auth/linkedin/authorize"
+      : "/api/auth/linkedin/authorize";
+
+    const url = `${endpoint}?email=${encodeURIComponent(account.email)}`;
+
+    window.location.assign(url);
   };
 
   return (
@@ -83,14 +141,32 @@ export default function Recruiters() {
         <h1>Recruiters</h1>
 
         <button className="add-btn" onClick={() => setShowModal(true)}>
-          + Add Recruiter
+          + Add {isSales ? "Sales" : "Recruiter"}
+        </button>
+      </div>
+
+      <div className="account-mode-toggle">
+        <button
+          type="button"
+          className={!isSales ? "mode-btn active" : "mode-btn"}
+          onClick={() => handleModeChange("vendor")}
+        >
+          Vendor
+        </button>
+
+        <button
+          type="button"
+          className={isSales ? "mode-btn active" : "mode-btn"}
+          onClick={() => handleModeChange("sales")}
+        >
+          Sales
         </button>
       </div>
 
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <h3>Add Recruiter</h3>
+            <h3>Add {isSales ? "Sales Account" : "Vendor Account"}</h3>
 
             <input
               placeholder="Full Name"
@@ -100,6 +176,7 @@ export default function Recruiters() {
 
             <input
               placeholder="Email"
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -111,11 +188,16 @@ export default function Recruiters() {
             />
 
             <div className="modal-actions">
-              <button className="cancel-btn" onClick={() => setShowModal(false)}>
+              <button
+                type="button"
+                className="cancel-btn"
+                onClick={() => setShowModal(false)}
+              >
                 Cancel
               </button>
-              <button className="save-btn" onClick={handleCreate}>
-                Save
+
+              <button type="button" className="save-btn" onClick={handleCreate}>
+                Add {isSales ? "Sales" : "Vendor"}
               </button>
             </div>
           </div>
@@ -134,29 +216,24 @@ export default function Recruiters() {
         </thead>
 
         <tbody>
-          {recruiters.map((recruiter) => (
-            <tr key={recruiter.id}>
-              <td>{recruiter.full_name}</td>
+          {accounts.map((account) => (
+            <tr key={account.id}>
+              <td>{account.full_name}</td>
 
-              <td>{recruiter.email}</td>
+              <td>{account.email}</td>
 
-              <td>
-                {recruiter.connected ? "🟢 Connected" : "🔴 Not Connected"}
-              </td>
+              <td>{account.connected ? "🟢 Connected" : "🔴 Not Connected"}</td>
 
               <td>
-                {recruiter.connected ? (
-                  <button className="connected-btn" disabled>
+                {account.connected ? (
+                  <button type="button" className="connected-btn" disabled>
                     Connected
                   </button>
                 ) : (
                   <button
+                    type="button"
                     className="connect-btn"
-                    onClick={() => {
-                      window.location.href = `/api/auth/linkedin/authorize?email=${encodeURIComponent(
-                            recruiter.email,
-                       )}`;
-                    }}
+                    onClick={() => handleConnect(account)}
                   >
                     Connect
                   </button>
@@ -164,13 +241,14 @@ export default function Recruiters() {
               </td>
 
               <td>
-                  <button
- 			 className="delete-btn"
- 			 disabled={!recruiter.id}
- 			 onClick={() => handleDelete(recruiter.id, recruiter)}
-			>
- 			 🗑 Delete
-		</button>
+                <button
+                  type="button"
+                  className="delete-btn"
+                  disabled={!account.id}
+                  onClick={() => handleDelete(account.id, account)}
+                >
+                  🗑 Delete
+                </button>
               </td>
             </tr>
           ))}

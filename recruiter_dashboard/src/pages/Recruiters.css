@@ -107,3 +107,44 @@
   background:#bdbdbd;
   cursor:not-allowed;
 }
+
+/* Vendor / Sales account toggle */
+.account-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  margin: 0 0 20px 0;
+  background: #eef2f7;
+  border: 1px solid #d9e0e8;
+  border-radius: 10px;
+}
+
+.mode-btn {
+  min-width: 100px;
+  padding: 9px 20px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-btn:hover {
+  color: #1e293b;
+  background: #e2e8f0;
+}
+
+.mode-btn.active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+.mode-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}

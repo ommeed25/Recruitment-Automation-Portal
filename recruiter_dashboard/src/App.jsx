@@ -11,6 +11,7 @@ import History from "./pages/History";
 import Settings from "./pages/Settings";
 
 import VendorPartnership from "./pages/VendorPartnership";
+import Sales from "./pages/Sales";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/recruiters" element={<Recruiters />} />
           <Route path="/history" element={<History />} />
           <Route path="/vendor-partnership" element={<VendorPartnership />} />
+          <Route path="/sales" element={<Sales />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>

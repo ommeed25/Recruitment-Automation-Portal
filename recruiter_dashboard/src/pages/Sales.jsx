@@ -2,16 +2,16 @@ import { useEffect, useState } from "react";
 import "./VendorPartnership.css";
 
 import {
-  getVendorSettings,
-  getVendorImages,
-  getVendorHashtags,
-  selectVendorImage,
-  uploadVendorImage,
-  deleteVendorImage,
-  addVendorHashtags,
-  deleteVendorHashtag,
-  updateVendorSettings,
-} from "../services/vendor";
+  getSalesSettings,
+  updateSalesSettings,
+  getSalesImages,
+  uploadSalesImage,
+  selectSalesImage,
+  deleteSalesImage,
+  getSalesHashtags,
+  addSalesHashtags,
+  deleteSalesHashtag,
+} from "../services/sales";
 
 function parseHashtags(value) {
   const uniqueHashtags = new Map();
@@ -22,17 +22,17 @@ function parseHashtags(value) {
     .filter(Boolean)
     .forEach((tag) => {
       const hashtag = `#${tag}`;
-      const normalizedHashtag = hashtag.toLowerCase();
+      const normalized = hashtag.toLowerCase();
 
-      if (!uniqueHashtags.has(normalizedHashtag)) {
-        uniqueHashtags.set(normalizedHashtag, hashtag);
+      if (!uniqueHashtags.has(normalized)) {
+        uniqueHashtags.set(normalized, hashtag);
       }
     });
 
   return [...uniqueHashtags.values()];
 }
 
-export default function VendorPartnership() {
+export default function Sales() {
   const [settings, setSettings] = useState(null);
   const [images, setImages] = useState([]);
   const [hashtags, setHashtags] = useState([]);
@@ -41,54 +41,55 @@ export default function VendorPartnership() {
   const [selectedHashtagIds, setSelectedHashtagIds] = useState([]);
 
   useEffect(() => {
-    const loadVendorData = async () => {
+    const loadData = async () => {
       try {
-        const [settingsData, imagesData, hashtagsData] = await Promise.all([
-          getVendorSettings(),
-          getVendorImages(),
-          getVendorHashtags(),
-        ]);
+        const [settingsData, imagesData, hashtagsData] =
+          await Promise.all([
+            getSalesSettings(),
+            getSalesImages(),
+            getSalesHashtags(),
+          ]);
 
         setSettings(settingsData);
         setImages(imagesData);
         setHashtags(hashtagsData);
       } catch (error) {
-        console.error("Failed to load vendor data:", error);
+        console.error("Failed to load Sales data:", error);
       }
     };
 
-    void loadVendorData();
+    void loadData();
   }, []);
 
   const handleSelectImage = async (imageId) => {
     try {
-      await selectVendorImage(imageId);
+      await selectSalesImage(imageId);
 
-      const updatedImages = await getVendorImages();
-      const updatedSettings = await getVendorSettings();
+      const [updatedImages, updatedSettings] = await Promise.all([
+        getSalesImages(),
+        getSalesSettings(),
+      ]);
 
       setImages(updatedImages);
       setSettings(updatedSettings);
     } catch (error) {
-      console.error("Failed to select vendor image:", error);
+      console.error("Failed to select Sales image:", error);
       alert("Unable to select image");
     }
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) {
-      return;
-    }
+    if (!selectedFile) return;
 
     try {
-      await uploadVendorImage(selectedFile);
+      await uploadSalesImage(selectedFile);
 
       setSelectedFile(null);
 
-      const updatedImages = await getVendorImages();
+      const updatedImages = await getSalesImages();
       setImages(updatedImages);
     } catch (error) {
-      console.error("Failed to upload vendor image:", error);
+      console.error("Failed to upload Sales image:", error);
       alert("Unable to upload image");
     }
   };
@@ -96,161 +97,165 @@ export default function VendorPartnership() {
   const handleDeleteImage = async (imageId, filename) => {
     if (
       !window.confirm(
-        `Delete "${filename}"?\n\nThis image will be permanently removed.`,
+        `Delete "${filename}"?\n\nThis image will be permanently removed.`
       )
     ) {
       return;
     }
 
     try {
-      await deleteVendorImage(imageId);
+      await deleteSalesImage(imageId);
 
-      const updatedImages = await getVendorImages();
+      const updatedImages = await getSalesImages();
       setImages(updatedImages);
     } catch (error) {
-      console.error("Failed to delete vendor image:", error);
-
-      alert(error.response?.data?.detail || "Unable to delete image");
+      console.error("Failed to delete Sales image:", error);
+      alert(
+        error.response?.data?.detail || "Unable to delete image"
+      );
     }
   };
 
   const handleAddHashtags = async () => {
-    const parsedHashtags = parseHashtags(newHashtags);
+    const parsed = parseHashtags(newHashtags);
 
-    if (parsedHashtags.length === 0) {
-      return;
-    }
+    if (parsed.length === 0) return;
 
-    const existingHashtags = new Set(
-      hashtags.map((item) => item.hashtag.toLowerCase()),
-    );
-    const uniqueHashtags = parsedHashtags.filter(
-      (hashtag) => !existingHashtags.has(hashtag.toLowerCase()),
+    const existing = new Set(
+      hashtags.map((item) => item.hashtag.toLowerCase())
     );
 
-    if (uniqueHashtags.length === 0) {
+    const unique = parsed.filter(
+      (hashtag) => !existing.has(hashtag.toLowerCase())
+    );
+
+    if (unique.length === 0) {
       setNewHashtags("");
       return;
     }
 
-    const totalHashtagCount = hashtags.length + uniqueHashtags.length;
-
-    if (totalHashtagCount > 30) {
+    if (hashtags.length + unique.length > 30) {
       alert("Maximum 30 hashtags allowed.");
       return;
     }
 
     try {
-      await addVendorHashtags(uniqueHashtags);
+      await addSalesHashtags(unique);
 
-      const updatedHashtags = await getVendorHashtags();
+      const updated = await getSalesHashtags();
 
-      setHashtags(updatedHashtags);
+      setHashtags(updated);
       setNewHashtags("");
     } catch (error) {
-      console.error("Failed to add hashtags:", error);
-
-      alert(error.response?.data?.detail || "Unable to add hashtags");
+      console.error("Failed to add Sales hashtags:", error);
+      alert(
+        error.response?.data?.detail ||
+          "Unable to add hashtags"
+      );
     }
   };
 
   const handleDeleteHashtag = async (hashtagId, hashtag) => {
-    if (!window.confirm(`Remove ${hashtag}?`)) {
-      return;
-    }
+    if (!window.confirm(`Remove ${hashtag}?`)) return;
 
     try {
-      await deleteVendorHashtag(hashtagId);
+      await deleteSalesHashtag(hashtagId);
 
-      const updatedHashtags = await getVendorHashtags();
-      setHashtags(updatedHashtags);
-      setSelectedHashtagIds((currentIds) =>
-        currentIds.filter((id) => id !== hashtagId),
+      const updated = await getSalesHashtags();
+
+      setHashtags(updated);
+      setSelectedHashtagIds((current) =>
+        current.filter((id) => id !== hashtagId)
       );
     } catch (error) {
-      console.error("Failed to delete hashtag:", error);
-
-      alert(error.response?.data?.detail || "Unable to delete hashtag");
+      console.error("Failed to delete Sales hashtag:", error);
+      alert(
+        error.response?.data?.detail ||
+          "Unable to delete hashtag"
+      );
     }
   };
 
   const handleToggleHashtag = (hashtagId) => {
-    setSelectedHashtagIds((currentIds) =>
-      currentIds.includes(hashtagId)
-        ? currentIds.filter((id) => id !== hashtagId)
-        : [...currentIds, hashtagId],
+    setSelectedHashtagIds((current) =>
+      current.includes(hashtagId)
+        ? current.filter((id) => id !== hashtagId)
+        : [...current, hashtagId]
     );
   };
 
-  const handleToggleAllHashtags = () => {
-    setSelectedHashtagIds((currentIds) =>
-      currentIds.length === hashtags.length
+  const handleToggleAll = () => {
+    setSelectedHashtagIds((current) =>
+      current.length === hashtags.length
         ? []
-        : hashtags.map((item) => item.id),
+        : hashtags.map((item) => item.id)
     );
-  };
-
-  const refreshHashtags = async () => {
-    const updatedHashtags = await getVendorHashtags();
-
-    setHashtags(updatedHashtags);
-    setSelectedHashtagIds([]);
   };
 
   const handleDeleteSelected = async () => {
-    if (selectedHashtagIds.length === 0) {
-      return;
-    }
+    if (selectedHashtagIds.length === 0) return;
 
     try {
-      await Promise.all(selectedHashtagIds.map((id) => deleteVendorHashtag(id)));
-      await refreshHashtags();
+      await Promise.all(
+        selectedHashtagIds.map((id) => deleteSalesHashtag(id))
+      );
+
+      setHashtags(await getSalesHashtags());
+      setSelectedHashtagIds([]);
     } catch (error) {
-      console.error("Failed to delete selected hashtags:", error);
-      alert(error.response?.data?.detail || "Unable to delete selected hashtags");
+      console.error("Failed to delete selected Sales hashtags:", error);
+      alert("Unable to delete selected hashtags");
     }
   };
 
   const handleDeleteAll = async () => {
-    if (hashtags.length === 0 || !window.confirm("Delete all hashtags?")) {
+    if (
+      hashtags.length === 0 ||
+      !window.confirm("Delete all hashtags?")
+    ) {
       return;
     }
 
     try {
-      await Promise.all(hashtags.map((item) => deleteVendorHashtag(item.id)));
-      await refreshHashtags();
+      await Promise.all(
+        hashtags.map((item) => deleteSalesHashtag(item.id))
+      );
+
+      setHashtags(await getSalesHashtags());
+      setSelectedHashtagIds([]);
     } catch (error) {
-      console.error("Failed to delete all hashtags:", error);
-      alert(error.response?.data?.detail || "Unable to delete all hashtags");
+      console.error("Failed to delete Sales hashtags:", error);
+      alert("Unable to delete all hashtags");
     }
   };
 
   const handleSaveSettings = async () => {
-    if (!settings) {
-      return;
-    }
+    if (!settings) return;
 
     try {
-      const updatedSettings = await updateVendorSettings(
+      const updated = await updateSalesSettings(
         settings.is_enabled,
-        settings.posting_time,
+        settings.posting_time
       );
 
-      setSettings(updatedSettings);
-
-      alert("Vendor settings saved successfully");
+      setSettings(updated);
+      alert("Sales settings saved successfully");
     } catch (error) {
-      console.error("Failed to save vendor settings:", error);
-      alert("Unable to save vendor settings");
+      console.error("Failed to save Sales settings:", error);
+      alert("Unable to save Sales settings");
     }
   };
+
+  const activeImage = images.find((image) => image.is_active);
 
   return (
     <div className="vendor-page">
       <div className="vendor-header">
         <div>
-          <h1>Vendor Partnership</h1>
-          <p>Manage the image, hashtags, and daily LinkedIn posting.</p>
+          <h1>Sales</h1>
+          <p>
+            Manage Sales images, hashtags, and daily LinkedIn posting.
+          </p>
         </div>
       </div>
 
@@ -292,35 +297,29 @@ export default function VendorPartnership() {
       </div>
 
       <div className="vendor-card">
-        <h2>Vendor Image</h2>
+        <h2>Sales Image</h2>
 
         <p className="vendor-muted">
-          Select the image that will be posted every morning.
+          Select the image that will be used for Sales posts.
         </p>
 
         <input
           type="file"
-          id="vendor-image-upload"
+          id="sales-image-upload"
           accept="image/png,image/jpeg,image/webp"
           hidden
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-
-            if (!file) {
-              return;
-            }
-
-            setSelectedFile(file);
-          }}
+          onChange={(e) =>
+            setSelectedFile(e.target.files?.[0] || null)
+          }
         />
 
         <div className="vendor-image-section">
           <div className="vendor-image-preview">
-            {images.find((image) => image.is_active) ? (
+            {activeImage ? (
               <>
                 <img
-                  src={images.find((image) => image.is_active).file_path}
-                  alt={images.find((image) => image.is_active).filename}
+                  src={activeImage.file_path}
+                  alt={activeImage.filename}
                 />
                 <div className="vendor-image-preview-label">
                   Active Image Preview
@@ -328,8 +327,7 @@ export default function VendorPartnership() {
               </>
             ) : (
               <div className="vendor-image-preview-empty">
-                No active image selected. Click a thumbnail on the right to
-                choose one.
+                No active image selected.
               </div>
             )}
           </div>
@@ -337,7 +335,7 @@ export default function VendorPartnership() {
           <div className="vendor-image-controls">
             <div className="vendor-image-actions">
               <label
-                htmlFor="vendor-image-upload"
+                htmlFor="sales-image-upload"
                 className="vendor-upload-btn"
               >
                 + Choose Image
@@ -360,14 +358,14 @@ export default function VendorPartnership() {
             </div>
 
             <p className="vendor-image-help">
-              Upload JPG, PNG, or WEBP. Once uploaded, click a thumbnail to make
-              it active.
+              Upload JPG, PNG, or WEBP. Click a thumbnail to make it
+              active.
             </p>
 
             <div className="vendor-images">
               {images.length === 0 ? (
                 <div className="vendor-empty">
-                  No vendor images uploaded yet.
+                  No Sales images uploaded yet.
                 </div>
               ) : (
                 images.map((image) => (
@@ -383,8 +381,10 @@ export default function VendorPartnership() {
                       className="vendor-image-delete"
                       onClick={(e) => {
                         e.stopPropagation();
-
-                        handleDeleteImage(image.id, image.filename);
+                        handleDeleteImage(
+                          image.id,
+                          image.filename
+                        );
                       }}
                     >
                       ×
@@ -396,10 +396,14 @@ export default function VendorPartnership() {
                     />
 
                     <div className="vendor-image-info">
-                      <div className="vendor-image-name">{image.filename}</div>
+                      <div className="vendor-image-name">
+                        {image.filename}
+                      </div>
 
                       {image.is_active && (
-                        <span className="vendor-image-status">Active</span>
+                        <span className="vendor-image-status">
+                          Active
+                        </span>
                       )}
                     </div>
                   </div>
@@ -415,11 +419,13 @@ export default function VendorPartnership() {
           <div>
             <h2>Hashtags</h2>
             <p className="vendor-muted">
-              Add up to 30 hashtags for the daily post.
+              Add up to 30 hashtags for Sales posts.
             </p>
           </div>
 
-          <span className="hashtag-count">{hashtags.length} / 30</span>
+          <span className="hashtag-count">
+            {hashtags.length} / 30
+          </span>
         </div>
 
         {hashtags.length > 0 && (
@@ -427,7 +433,7 @@ export default function VendorPartnership() {
             <button
               type="button"
               className="hashtag-toolbar-btn"
-              onClick={handleToggleAllHashtags}
+              onClick={handleToggleAll}
             >
               {selectedHashtagIds.length === hashtags.length
                 ? "Deselect All"
@@ -455,21 +461,26 @@ export default function VendorPartnership() {
 
         <div className="hashtag-list">
           {hashtags.length === 0 ? (
-            <div className="vendor-empty">No hashtags added yet.</div>
+            <div className="vendor-empty">
+              No hashtags added yet.
+            </div>
           ) : (
             hashtags.map((item) => (
               <div
                 key={item.id}
                 className={`hashtag-item ${
-                  selectedHashtagIds.includes(item.id) ? "selected" : ""
+                  selectedHashtagIds.includes(item.id)
+                    ? "selected"
+                    : ""
                 }`}
               >
                 <label className="hashtag-selection">
                   <input
                     type="checkbox"
                     checked={selectedHashtagIds.includes(item.id)}
-                    onChange={() => handleToggleHashtag(item.id)}
-                    aria-label={`Select ${item.hashtag}`}
+                    onChange={() =>
+                      handleToggleHashtag(item.id)
+                    }
                   />
                   <span>{item.hashtag}</span>
                 </label>
@@ -477,7 +488,12 @@ export default function VendorPartnership() {
                 <button
                   className="hashtag-delete"
                   type="button"
-                  onClick={() => handleDeleteHashtag(item.id, item.hashtag)}
+                  onClick={() =>
+                    handleDeleteHashtag(
+                      item.id,
+                      item.hashtag
+                    )
+                  }
                 >
                   ×
                 </button>

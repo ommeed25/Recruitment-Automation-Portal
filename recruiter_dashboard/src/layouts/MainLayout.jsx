@@ -6,6 +6,7 @@ import {
   History,
   Settings,
   Handshake,
+  TrendingUp,
 } from "lucide-react";
 
 import "../styles/layout.css";
@@ -36,6 +37,11 @@ const menu = [
     title: "Vendor",
     path: "/vendor-partnership",
     icon: <Handshake />,
+  },
+  {
+  title: "Sales",
+  path: "/sales",
+  icon: <TrendingUp size={20} />,
   },
   {
     title: "Settings",
